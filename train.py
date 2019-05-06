@@ -21,7 +21,7 @@ def get_args():
     args.add_argument('--epochs',type=int,default=100)
     args.add_argument('--steps',type=int,default=100)
     args.add_argument('--lr',type=float,default=0.01,help='learning rate')
-    args.add_argument('--loss',type=str,default='mse')
+
 
     args.add_argument('--out_path',type=str,default='result')
     args = args.parse_args()
@@ -31,10 +31,11 @@ def main():
     args = get_args()
 
     output_path = Path(__file__).resolve().parent.joinpath(args.out_path)
-    
+    output_path.mkdir(parents=True, exist_ok=True)
+
     train_generator = LR_HR_generator(args.image_dir,args.batch_size,args.image_size,args.de_num)
-    test_generator = LR_HR_generator(args.test_dir,args.batch_size,args.image_size,args.de_num)
-    model = get_model(args.model,args.lr,args.loss) 
+    val_generator = LR_HR_generator(args.test_dir,args.batch_size,args.image_size,args.de_num)
+    model = get_model(args.model,args.lr) 
     
     callbacks = []
     callbacks.append(LearningRateScheduler(schedule=Schedule(args.epochs,args.lr)))
@@ -44,8 +45,8 @@ def main():
                                      mode="max",
                                      save_best_only=True))
 
-    hist = model.fit_generator(train_generator,epochs=args.epochs,steps_per_epoch=args.steps,
-                    callbacks=callbacks,validation_data=test_generator)
+    hist = model.fit_generator(generator=train_generator,epochs=args.epochs,steps_per_epoch=args.steps,validation_data=val_generator,verbose=1,
+                    callbacks=callbacks)
 
     np.savez(str(output_path.joinpath("history.npz")), history=hist.history)
 
