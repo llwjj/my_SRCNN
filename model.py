@@ -1,7 +1,7 @@
 import keras.backend as K
 from keras.layers import Input,Conv2D
 from keras.models import Model
-from keras.optimizers import SGD
+from keras.optimizers import Adam
 
 class Schedule:
     def __init__(self, nb_epochs, initial_lr):
@@ -21,6 +21,8 @@ def tf_log10(x):
     numerator = K.log(x)
     denominator = K.log(K.constant(10, dtype=numerator.dtype))
     return numerator / denominator
+def mse(y_true, y_pred):
+    return K.mean(K.square(y_true-y_pred))
 
 def PSNR(y_true, y_pred):
     max_pixel = 255.0
@@ -36,13 +38,13 @@ def SRCNN(input_size=(None,None,3)):
     model = Model(inputs=inputs,outputs=outputs)
     return model
 
-def get_model(model='SRCNN',lr=0.01,loss='mse',*args,**kw):
+def get_model(model='SRCNN',lr=0.01,*args,**kw):
     func = None
     if model == 'SRCNN':
         func = SRCNN
     model = func(*args,**kw)
-    opt = SGD(lr)
-    model.compile(optimizer=opt, loss=loss, metrics=[PSNR])
+    opt = Adam(lr)
+    model.compile(optimizer=opt, loss=mse, metrics=[PSNR])
     return model
 
 if __name__ == "__main__":
