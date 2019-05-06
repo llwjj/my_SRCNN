@@ -12,7 +12,8 @@ def imread(path,type=None):
     return cv2.imread(path)
 def imshow(img):
     cv2.imshow('',img)
-    cv2.waitKey(-1)
+    key = cv2.waitKey(-1)
+    return key
 
 def resize(img,scale):
     h,w,_ = img.shape
