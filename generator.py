@@ -6,12 +6,13 @@ import numpy as np
 from image_process import imread,resize,LR_image
 
 class LR_HR_generator(Sequence):
-    def __init__(self,image_dir,batch_size=16,image_size=128,de_num=4):
+    def __init__(self,image_dir,batch_size=16,image_size=128,de_num=4,inplace=False):
         image_suffixes = (".jpeg", ".jpg", ".png", ".bmp")
         self.image_paths = [p for p in Path(image_dir).glob("**/*") if p.suffix.lower() in image_suffixes]
         self.batch_size = batch_size
         self.image_size = image_size
         self.de_num = de_num
+        self.inplace =inplace
 
         self.images_num = len(self.image_paths)
         if self.images_num == 0:
@@ -46,7 +47,7 @@ class LR_HR_generator(Sequence):
             y = random.randint(0,h-image_size)
             img = img[y:y+image_size,x:x+image_size]
 
-            img_LR = LR_image(img,self.de_num)
+            img_LR = LR_image(img,self.de_num,self.inplace)
 
             inputs[num] = img_LR
             outputs[num] = img
