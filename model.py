@@ -1,5 +1,5 @@
 import keras.backend as K
-from keras.layers import Input,Conv2D,LeakyReLU,UpSampling2D,BatchNormalization,add
+from keras.layers import Input,Conv2D,PReLU,UpSampling2D,BatchNormalization,add
 from keras.models import Model
 from keras.optimizers import Adam
 
@@ -44,7 +44,7 @@ def SRResNet(input_size=(None,None,3)):
         def __init__(self):
             self.conv1 = Conv2D(64,3,padding='same')
             self.in1 = BatchNormalization()
-            self.relu = LeakyReLU(0.2)
+            self.relu = PReLU(0.2)
             self.conv2 = Conv2D(64,3,padding='same')
             self.in2 = BatchNormalization()
         def __call__(self,x):
@@ -61,23 +61,23 @@ def SRResNet(input_size=(None,None,3)):
     inputs = Input(input_size)
 
     layer_mid = Conv2D(64,9,padding='same')(inputs)
-    res1 = LeakyReLU(0.2)(layer_mid)
+    res1 = PReLU(0.2)(layer_mid)
     
-    residual = _Residul(res1,16)
+    residual = _Residul(res1,5)
 
     layer_mid = Conv2D(64,3,padding='same')(residual)
-    layer_mid = LeakyReLU(0.2)(layer_mid)
+    layer_mid = PReLU(0.2)(layer_mid)
 
     layer_mid = add([layer_mid,res1])
 
     layer_mid = Conv2D(256,3,padding='same')(layer_mid)
     layer_mid = UpSampling2D(2)(layer_mid)
     layer_mid = Conv2D(64,1,padding='same')(layer_mid)
-    layer_mid = LeakyReLU(0.2)(layer_mid)
+    layer_mid = PReLU(0.2)(layer_mid)
     layer_mid = Conv2D(256,3,padding='same')(layer_mid)
     layer_mid = UpSampling2D(2)(layer_mid)
     layer_mid = Conv2D(64,1,padding='same')(layer_mid)
-    layer_mid = LeakyReLU(0.2)(layer_mid)
+    layer_mid = PReLU(0.2)(layer_mid)
 
     outputs = Conv2D(3,9,padding='same')(layer_mid)
 
