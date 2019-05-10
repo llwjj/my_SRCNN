@@ -20,7 +20,7 @@ class LR_HR_generator(Sequence):
 
 
     def __len__(self):
-        return self.images_num//self.batch_size
+        return self.images_num//self.batch_size + 1
 
     def __getitem__(self, idex):
         batch_size = self.batch_size
@@ -32,7 +32,7 @@ class LR_HR_generator(Sequence):
         path_index = idex * batch_size
         num = 0
         while True:
-            if path_index > images_num:
+            if path_index >= images_num:
                 path_index = path_index % images_num
             path = str(self.image_paths[path_index])
             img = imread(path)
