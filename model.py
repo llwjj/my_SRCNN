@@ -1,7 +1,8 @@
 import keras.backend as K
-from keras.layers import Input,Conv2D
+from keras.layers import Input,Conv2D,LeakyReLU,UpSampling2D,BatchNormalization,add
 from keras.models import Model
 from keras.optimizers import SGD
+
 
 class Schedule:
     def __init__(self, nb_epochs, initial_lr):
@@ -36,15 +37,64 @@ def SRCNN(input_size=(None,None,3)):
     model = Model(inputs=inputs,outputs=outputs)
     return model
 
+def SRResNet(input_size=(None,None,3)):
+    class _Residul_Block:
+        def __init__(self):
+            self.conv1 = Conv2D(64,3,padding='same',use_bias=False)
+            self.in1 = BatchNormalization()
+            self.relu = LeakyReLU(0.2)
+            self.conv2 = Conv2D(64,3,padding='same',use_bias=False)
+            self.in2 = BatchNormalization()
+        def __call__(self,x):
+            outputs = self.relu(self.in1( self.conv1(x)))
+            outputs = self.in2(self.conv2(outputs))
+            outputs = add([x,outputs])
+            return outputs
+    def _Residul(x,num=1):
+        outputs = _Residul_Block()(x)
+        for _ in range(num-1):
+            outputs = _Residul_Block()(outputs)
+        return outputs
+
+    inputs = Input(input_size)
+
+    layer_mid = Conv2D(64,9,padding='same',use_bias=False)(inputs)
+    res1 = LeakyReLU(0.2)(layer_mid)
+    
+    residual = _Residul(res1,16)
+
+    layer_mid = Conv2D(64,3,padding='same',use_bias=False)(residual)
+    layer_mid = LeakyReLU(0.2)(layer_mid)
+
+    layer_mid = add([layer_mid,res1])
+
+    layer_mid = Conv2D(256,3,padding='same',use_bias=False)(layer_mid)
+    layer_mid = UpSampling2D(2)(layer_mid)
+    layer_mid = Conv2D(64,3,padding='same',use_bias=False)(layer_mid)
+    layer_mid = LeakyReLU(0.2)(layer_mid)
+    layer_mid = Conv2D(256,3,padding='same',use_bias=False)(layer_mid)
+    layer_mid = UpSampling2D(2)(layer_mid)
+    layer_mid = Conv2D(64,3,padding='same',use_bias=False)(layer_mid)
+    layer_mid = LeakyReLU(0.2)(layer_mid)
+
+    outputs = Conv2D(3,9,padding='same',use_bias=False)(layer_mid)
+
+    model = Model(inputs,outputs)
+
+    return model
+
+
 def get_model(model='SRCNN',lr=0.01,loss='mse',*args,**kw):
     func = None
     if model == 'SRCNN':
         func = SRCNN
+    elif model == 'SRResNet':
+        func = SRResNet
     model = func(*args,**kw)
     opt = SGD(lr)
     model.compile(optimizer=opt, loss=loss, metrics=[PSNR])
     return model
 
 if __name__ == "__main__":
-    model = get_model()
+    model = get_model('SRResNet')
     model.summary()
