@@ -22,6 +22,7 @@ def tf_log10(x):
     numerator = K.log(x)
     denominator = K.log(K.constant(10, dtype=numerator.dtype))
     return numerator / denominator
+    
 def mse(y_true, y_pred):
     return K.mean(K.square(y_true-y_pred))
 
