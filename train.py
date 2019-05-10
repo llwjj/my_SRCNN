@@ -23,28 +23,18 @@ def get_args():
     args.add_argument('--lr',type=float,default=0.01,help='learning rate')
 
 
-    args.add_argument('--out_path',type=str,default='result')
+    args.add_argument('--outpath',type=str,default='result')
     args = args.parse_args()
     return args
 
 def main():
     args = get_args()
-<<<<<<< HEAD
-    output_path = Path(__file__).resolve().parent.joinpath(args.output_path)
+    output_path = Path(__file__).resolve().parent.joinpath(args.outpath)
     
-    inplace = args.model in ['SRCNN'] 
+    inplace = args.model in ['SRResNet'] 
     train_generator = LR_HR_generator(args.image_dir,args.batch_size,args.image_size,args.de_num,inplace)
     test_generator = LR_HR_generator(args.test_dir,args.batch_size,args.image_size,args.de_num,inplace)
-    model = get_model(args.model,args.lr,args.loss) 
-=======
-
-    output_path = Path(__file__).resolve().parent.joinpath(args.out_path)
-    output_path.mkdir(parents=True, exist_ok=True)
-
-    train_generator = LR_HR_generator(args.image_dir,args.batch_size,args.image_size,args.de_num)
-    val_generator = LR_HR_generator(args.test_dir,args.batch_size,args.image_size,args.de_num)
     model = get_model(args.model,args.lr) 
->>>>>>> 1abc19c3f372587e9a0e3e53e6997d92c1ea7a5a
     
     callbacks = []
     callbacks.append(LearningRateScheduler(schedule=Schedule(args.epochs,args.lr)))
@@ -54,7 +44,7 @@ def main():
                                      mode="max",
                                      save_best_only=True))
 
-    hist = model.fit_generator(generator=train_generator,epochs=args.epochs,steps_per_epoch=args.steps,validation_data=val_generator,verbose=1,
+    hist = model.fit_generator(generator=train_generator,epochs=args.epochs,steps_per_epoch=args.steps,validation_data=test_generator,verbose=1,
                     callbacks=callbacks)
 
     np.savez(str(output_path.joinpath("history.npz")), history=hist.history)
