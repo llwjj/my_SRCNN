@@ -1,5 +1,4 @@
 import cv2
-import keras.backend as K
 
 
 def LR_image(img,de_num=4,inplace=False):
