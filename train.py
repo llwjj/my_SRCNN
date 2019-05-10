@@ -15,7 +15,7 @@ def get_args():
     args.add_argument('--de_num',type=int,default=4,help='low image')
     args.add_argument('--model',type=str,default='SRCNN')
 
-    args.add_argument('--image_size',type=int,default=128)
+    args.add_argument('--image_size',type=int,default=80)
     args.add_argument('--batch_size',type=int,default=16)
   
     args.add_argument('--epochs',type=int,default=100)
@@ -31,8 +31,9 @@ def main():
     args = get_args()
     output_path = Path(__file__).resolve().parent.joinpath(args.output_path)
     
-    train_generator = LR_HR_generator(args.image_dir,args.batch_size,args.image_size,args.de_num)
-    test_generator = LR_HR_generator(args.test_dir,args.batch_size,args.image_size,args.de_num)
+    inplace = args.model in ['SRCNN'] 
+    train_generator = LR_HR_generator(args.image_dir,args.batch_size,args.image_size,args.de_num,inplace)
+    test_generator = LR_HR_generator(args.test_dir,args.batch_size,args.image_size,args.de_num,inplace)
     model = get_model(args.model,args.lr,args.loss) 
     
     callbacks = []
