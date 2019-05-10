@@ -1,5 +1,5 @@
 import keras.backend as K
-from keras.layers import Input,Conv2D,LeakyReLU,UpSampling2D,BatchNormalization,add
+from keras.layers import Input,Conv2D,PReLU,UpSampling2D,BatchNormalization,add
 from keras.models import Model
 from keras.optimizers import Adam
 
@@ -22,13 +22,14 @@ def tf_log10(x):
     numerator = K.log(x)
     denominator = K.log(K.constant(10, dtype=numerator.dtype))
     return numerator / denominator
+    
 def mse(y_true, y_pred):
     return K.mean(K.square(y_true-y_pred))
 
 def PSNR(y_true, y_pred):
     max_pixel = 255.0
     y_pred = K.clip(y_pred, 0.0, 255.0)
-    return 10.0 * tf_log10((max_pixel ** 2) / (K.mean(K.square(y_pred - y_true))))
+    return 10.0 * tf_log10((max_pixel ** 2) / mse(y_true, y_pred))
 
 def SRCNN(input_size=(None,None,3)):
     inputs = Input(input_size)
@@ -44,7 +45,7 @@ def SRResNet(input_size=(None,None,3)):
         def __init__(self):
             self.conv1 = Conv2D(64,3,padding='same')
             self.in1 = BatchNormalization()
-            self.relu = LeakyReLU(0.2)
+            self.relu = PReLU(shared_axes=[1, 2])
             self.conv2 = Conv2D(64,3,padding='same')
             self.in2 = BatchNormalization()
         def __call__(self,x):
@@ -61,23 +62,23 @@ def SRResNet(input_size=(None,None,3)):
     inputs = Input(input_size)
 
     layer_mid = Conv2D(64,9,padding='same')(inputs)
-    res1 = LeakyReLU(0.2)(layer_mid)
+    res1 = PReLU(shared_axes=[1, 2])(layer_mid)
     
-    residual = _Residul(res1,16)
+    residual = _Residul(res1,5)
 
     layer_mid = Conv2D(64,3,padding='same')(residual)
-    layer_mid = LeakyReLU(0.2)(layer_mid)
+    layer_mid = PReLU(shared_axes=[1, 2])(layer_mid)
 
     layer_mid = add([layer_mid,res1])
 
     layer_mid = Conv2D(256,3,padding='same')(layer_mid)
     layer_mid = UpSampling2D(2)(layer_mid)
     layer_mid = Conv2D(64,1,padding='same')(layer_mid)
-    layer_mid = LeakyReLU(0.2)(layer_mid)
+    layer_mid = PReLU(shared_axes=[1, 2])(layer_mid)
     layer_mid = Conv2D(256,3,padding='same')(layer_mid)
     layer_mid = UpSampling2D(2)(layer_mid)
     layer_mid = Conv2D(64,1,padding='same')(layer_mid)
-    layer_mid = LeakyReLU(0.2)(layer_mid)
+    layer_mid = PReLU(shared_axes=[1, 2])(layer_mid)
 
     outputs = Conv2D(3,9,padding='same')(layer_mid)
 
@@ -98,5 +99,5 @@ def get_model(model='SRCNN',lr=0.01,loss='mse',*args,**kw):
     return model
 
 if __name__ == "__main__":
-    model = get_model('SRResNet',lr=0.01,loss='mse',input_size=(64,64,3))
+    model = get_model('SRResNet',lr=0.01,loss='mse',input_size=(128,128,3))
     model.summary()
