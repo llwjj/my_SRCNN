@@ -26,7 +26,10 @@ class LR_HR_generator(Sequence):
         batch_size = self.batch_size
         image_size = self.image_size
         images_num = self.images_num
+
         inputs = np.zeros((batch_size, image_size, image_size, 3), dtype=np.uint8)
+        if self.inplace:
+            image_size *= 4
         outputs = np.zeros((batch_size, image_size, image_size, 3), dtype=np.uint8)
         
         path_index = idex * batch_size
