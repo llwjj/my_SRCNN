@@ -98,5 +98,5 @@ def get_model(model='SRCNN',lr=0.01,loss='mse',*args,**kw):
     return model
 
 if __name__ == "__main__":
-    model = get_model('SRResNet')
+    model = get_model('SRResNet',lr=0.01,loss='mse',input_size=(64,64,3))
     model.summary()
