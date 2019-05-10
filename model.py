@@ -42,10 +42,10 @@ def SRCNN(input_size=(None,None,3)):
 def SRResNet(input_size=(None,None,3)):
     class _Residul_Block:
         def __init__(self):
-            self.conv1 = Conv2D(64,3,padding='same',use_bias=False)
+            self.conv1 = Conv2D(64,3,padding='same')
             self.in1 = BatchNormalization()
             self.relu = LeakyReLU(0.2)
-            self.conv2 = Conv2D(64,3,padding='same',use_bias=False)
+            self.conv2 = Conv2D(64,3,padding='same')
             self.in2 = BatchNormalization()
         def __call__(self,x):
             outputs = self.relu(self.in1( self.conv1(x)))
@@ -60,26 +60,26 @@ def SRResNet(input_size=(None,None,3)):
 
     inputs = Input(input_size)
 
-    layer_mid = Conv2D(64,9,padding='same',use_bias=False)(inputs)
+    layer_mid = Conv2D(64,9,padding='same')(inputs)
     res1 = LeakyReLU(0.2)(layer_mid)
     
     residual = _Residul(res1,16)
 
-    layer_mid = Conv2D(64,3,padding='same',use_bias=False)(residual)
+    layer_mid = Conv2D(64,3,padding='same')(residual)
     layer_mid = LeakyReLU(0.2)(layer_mid)
 
     layer_mid = add([layer_mid,res1])
 
-    layer_mid = Conv2D(256,3,padding='same',use_bias=False)(layer_mid)
+    layer_mid = Conv2D(256,3,padding='same')(layer_mid)
     layer_mid = UpSampling2D(2)(layer_mid)
-    layer_mid = Conv2D(64,3,padding='same',use_bias=False)(layer_mid)
+    layer_mid = Conv2D(64,1,padding='same')(layer_mid)
     layer_mid = LeakyReLU(0.2)(layer_mid)
-    layer_mid = Conv2D(256,3,padding='same',use_bias=False)(layer_mid)
+    layer_mid = Conv2D(256,3,padding='same')(layer_mid)
     layer_mid = UpSampling2D(2)(layer_mid)
-    layer_mid = Conv2D(64,3,padding='same',use_bias=False)(layer_mid)
+    layer_mid = Conv2D(64,1,padding='same')(layer_mid)
     layer_mid = LeakyReLU(0.2)(layer_mid)
 
-    outputs = Conv2D(3,9,padding='same',use_bias=False)(layer_mid)
+    outputs = Conv2D(3,9,padding='same')(layer_mid)
 
     model = Model(inputs,outputs)
 
