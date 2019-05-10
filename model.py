@@ -39,7 +39,6 @@ def SRCNN(input_size=(None,None,3)):
     model = Model(inputs=inputs,outputs=outputs)
     return model
 
-<<<<<<< HEAD
 def SRResNet(input_size=(None,None,3)):
     class _Residul_Block:
         def __init__(self):
@@ -88,9 +87,6 @@ def SRResNet(input_size=(None,None,3)):
 
 
 def get_model(model='SRCNN',lr=0.01,loss='mse',*args,**kw):
-=======
-def get_model(model='SRCNN',lr=0.01,*args,**kw):
->>>>>>> 1abc19c3f372587e9a0e3e53e6997d92c1ea7a5a
     func = None
     if model == 'SRCNN':
         func = SRCNN
